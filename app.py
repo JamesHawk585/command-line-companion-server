@@ -6,6 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from marshmallow import fields
 import ipdb
+from marshmallow_sqlalchemy import SQLAlchemySchema
+
 
 # migrate = Migrate(app, db)
 
