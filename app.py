@@ -132,10 +132,10 @@ def user_by_id(id):
             # ipdb.set_trace()
             setattr(user, attr, request.get_json()[attr])
 
-            db.session.add(user)
-            db.session.commit()
+        db.session.add(user)
+        db.session.commit()
 
-            return make_response(user_schema.dump(user), 200)
+        return make_response(user_schema.dump(user), 200)
 
     elif request.method == "DELETE":
         user = User.query.filter_by(id=id).first()
@@ -186,10 +186,10 @@ def snippet_by_id(id):
             # ipdb.set_trace()
             setattr(snippet, attr, request.get_json()[attr])
 
-            db.session.add(snippet)
-            db.session.commit()
+        db.session.add(snippet)
+        db.session.commit()
 
-            return make_response(snippet_schema.dump(snippet), 200)
+        return make_response(snippet_schema.dump(snippet), 200)
 
     elif request.method == "DELETE":
         snippet = Snippet.query.filter_by(id=id).first()
