@@ -117,6 +117,17 @@ def users():
         response = make_response(user_schema.dump(user), 201)
 
         return response
+    
+    @app.route("/login", methods=["POST"])
+    def login(): 
+        data = request.get_json()
+        # Validations: Must have username and password!
+        user = User.query.filter(User.name == data.name).first()
+
+        # Is the user authenticated? 
+
+        session['user_id'] = user.id
+        return user.to_dict(), 200
 
 
 @app.route("/users/<int:id>", methods=["GET", "PATCH", "DELETE"])
