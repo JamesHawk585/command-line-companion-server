@@ -38,3 +38,5 @@ with app.app_context():
         # Add each user individually and commit
         db.session.add(user)
         db.session.commit()
+
+    

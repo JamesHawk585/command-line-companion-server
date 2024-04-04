@@ -25,7 +25,7 @@
         "id": 4
       },
       {
-        "title": "Python FOrmat method",
+        "title": "Python Format Method",
         "tags": "python, string, str, OOP",
         "languageSelect": "Python",
         "code": "def role_call(self):    \n        return \"This is {}. He is is {}\".format(self.title, self.department)",
