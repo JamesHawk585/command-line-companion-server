@@ -95,33 +95,33 @@ def index():
     return "<h1>CLI-Companion</h1>"
 
 
-@app.route("/users", methods=["GET", "POST"])
-def users():
-    # ipdb.set_trace()
-    if request.method == "GET":
+# @app.route("/users", methods=["GET", "POST"])
+# def users():
+#     # ipdb.set_trace()
+#     if request.method == "GET":
 
-        users = User.query.all()
+#         users = User.query.all()
 
-        response = make_response(users_schema.dump(users), 200)
-        return response
+#         response = make_response(users_schema.dump(users), 200)
+#         return response
 
-    elif request.method == "POST":
-        json_dict = request.get_json()
+#     elif request.method == "POST":
+#         json_dict = request.get_json()
 
-        user = User(
-            id=json_dict["id"],
-            username=json_dict["username"],
-            email=json_dict["email"],
-            first_name=json_dict["first_name"],
-            last_name=json_dict["last_name"],
-        )
+#         user = User(
+#             id=json_dict["id"],
+#             username=json_dict["username"],
+#             email=json_dict["email"],
+#             first_name=json_dict["first_name"],
+#             last_name=json_dict["last_name"],
+#         )
 
-        db.session.add(user)
-        db.session.commit()
+#         db.session.add(user)
+#         db.session.commit()
 
-        response = make_response(user_schema.dump(user), 201)
+#         response = make_response(user_schema.dump(user), 201)
 
-        return response
+#         return response
 
         # User object has no 'name' attribute. Must use either username, or email. Email must be unique if used. 
         # Will user = User.query.filter(User.id == data.id).first() work? Will React assign a different id to the object on the front-end than the object's server-side id?
@@ -137,7 +137,33 @@ def login():
     # Is the user authenticated?
 
     session["user_id"] = user.id
-    return user.to_dict(), 200
+    return user.to_dict(), 201
+
+class Users(Resource):
+    def post(self):
+    # Declare data variable and set equal to the request body. Calling the get_json() method on the request body will serialize the request into json. 
+        data = request.get_json()
+
+    # Declare a user variable set as eaqual to a new sintance of the user class. Each attribute of the new user object will be populated with the corresponding attribute in the body of the request, which has been serialized into json. 
+        user = User(
+            email=data["email"],
+            first_name=data["first_name"],
+            last_name=data["last_name"],
+            username=data["username"]
+        )
+
+    # Add new user object to the sessiona and commit.  
+
+        db.session.add(user)
+        db.session.commit()
+
+        # Declare a session id for the user. Set it equal to the new user objetcs id attribute. 
+
+        session["user_id"] = user.id
+
+        return user.to_dict(), 201
+    
+api.add_resource(Users, "/signup")
 
 
 @app.route("/users/<int:id>", methods=["GET", "PATCH", "DELETE"])
