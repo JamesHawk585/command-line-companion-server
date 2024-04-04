@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 from marshmallow import fields
 import ipdb
 from marshmallow_sqlalchemy import SQLAlchemySchema
+from sqlalchemy_serializer import SerializerMixin
 
 
 # migrate = Migrate(app, db)
@@ -26,6 +27,7 @@ class UserSchema(ma.SQLAlchemySchema):
     class Meta:
         model = User
 
+    # id = ma.auto_field()
     username = ma.auto_field()
     email = ma.auto_field()
     first_name = ma.auto_field()
@@ -38,6 +40,7 @@ class UserSchema(ma.SQLAlchemySchema):
             "collection": ma.URLFor("users"),
         }
     )
+
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
@@ -82,6 +85,7 @@ class TagSchema(ma.SQLAlchemySchema):
         }
     )
 
+
 tag_schema = TagSchema()
 tags_schema = TagSchema(many=True)
 
@@ -105,6 +109,7 @@ def users():
         json_dict = request.get_json()
 
         user = User(
+            id=json_dict["id"],
             username=json_dict["username"],
             email=json_dict["email"],
             first_name=json_dict["first_name"],
@@ -117,17 +122,22 @@ def users():
         response = make_response(user_schema.dump(user), 201)
 
         return response
-    
-    @app.route("/login", methods=["POST"])
-    def login(): 
-        data = request.get_json()
-        # Validations: Must have username and password!
-        user = User.query.filter(User.name == data.name).first()
 
-        # Is the user authenticated? 
+        # User object has no 'name' attribute. Must use either username, or email. Email must be unique if used. 
+        # Will user = User.query.filter(User.id == data.id).first() work? Will React assign a different id to the object on the front-end than the object's server-side id?
+        #  How to test?  
 
-        session['user_id'] = user.id
-        return user.to_dict(), 200
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    # Validations: Must have username and password!
+    user = User.query.filter(User.id == data["id"]).first()
+
+    # Is the user authenticated?
+
+    session["user_id"] = user.id
+    return user.to_dict(), 200
 
 
 @app.route("/users/<int:id>", methods=["GET", "PATCH", "DELETE"])
@@ -208,8 +218,6 @@ def snippet_by_id(id):
         db.session.commit()
 
         return make_response(snippet_schema.dump(snippet), 200)
-    
-
 
 
 @app.route("/tags", methods=["GET", "POST"])
@@ -225,9 +233,7 @@ def tags():
     elif request.method == "POST":
         json_dict = request.get_json()
 
-        tag = Tag(
-            tag=json_dict["tag"]
-        )
+        tag = Tag(tag=json_dict["tag"])
 
         db.session.add(tag)
         db.session.commit()

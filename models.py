@@ -10,7 +10,7 @@ snippets_tags_join_table = db.Table('snippet_to_tag',
                                     db.Column("tag_id", db.Integer, db.ForeignKey("tag.id")),
                                     )
 
-class User(db.Model):
+class User(db.Model, SerializerMixin):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
