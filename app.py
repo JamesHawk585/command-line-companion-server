@@ -146,6 +146,17 @@ class Users(Resource):
     
 api.add_resource(Users, "/signup")
 
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+
+    user = User.query.filter(User.id == user.id).first()
+    # Error handling goes here. 
+
+
+    session["user_id"] = user.id
+
+    return user.to_dict(), 201
 
 @app.route("/users/<int:id>", methods=["GET", "PATCH", "DELETE"])
 def user_by_id(id):
