@@ -103,9 +103,7 @@ def index():
 def login():
     data = request.get_json()
     # import ipdb; ipdb.set_trace()
-    user = User.query.filter(User.name == data["name"]).first()
-
-    # Is the user authenticated?
+    user = User.query.filter(User.username == data["username"]).first()
 
     session["user_id"] = user.id
     return user.to_dict(), 201
@@ -119,11 +117,6 @@ class Users(Resource):
     )
 
         return response
-
-
-    def post(self):
-    # Declare data variable and set equal to the request body. Calling the get_json() method on the request body will serialize the request into json. 
-        data = request.get_json()
 
     # Declare a user variable set as eaqual to a new sintance of the user class. Each attribute of the new user object will be populated with the corresponding attribute in the body of the request, which has been serialized into json. 
         user = User(
