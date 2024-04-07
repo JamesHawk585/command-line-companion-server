@@ -118,52 +118,19 @@ class Users(Resource):
 
         return response
 
-    # Declare a user variable set as eaqual to a new sintance of the user class. Each attribute of the new user object will be populated with the corresponding attribute in the body of the request, which has been serialized into json. 
-        user = User(
-            email=data["email"],
-            first_name=data["first_name"],
-            last_name=data["last_name"],
-            username=data["username"]
-        )
-
-    # Add new user object to the sessiona and commit.  
-
-        db.session.add(user)
-        db.session.commit()
-
-        # Declare a session id for the user. Set it equal to the new user objetcs id attribute. 
-
-        session["user_id"] = user.id
-
-        return user.to_dict(), 201
     
 api.add_resource(Users, "/signup")
 
-# @app.route("/users/<int:id>", methods=["GET", "PATCH", "DELETE"])
-# def user_by_id(id):
-#     user = User.query.filter_by(id=id).first()
-#     if request.method == "GET":
+@app.route("/authorized", methods=["GET"])
+def authorized():
+    if session.get("user_id"):
+        print("There is a user logged in")
+    else:
+        print("No session")
 
-#         response = make_response(user_schema.dump(user), 200)
-#         return response
+    return {}, 204
 
-#     elif request.method == "PATCH":
-#         for attr in request.get_json():
-#             # ipdb.set_trace()
-#             setattr(user, attr, request.get_json()[attr])
-
-#         db.session.add(user)
-#         db.session.commit()
-
-#         return make_response(user_schema.dump(user), 200)
-
-#     elif request.method == "DELETE":
-#         user = User.query.filter_by(id=id).first()
-#         db.session.delete(user)
-#         db.session.commit()
-
-#         return make_response(user_schema.dump(user), 200)
-
+        # 2:02:00
 
 @app.route("/snippets", methods=["GET", "POST"])
 def snippets():
