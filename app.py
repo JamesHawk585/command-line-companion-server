@@ -102,8 +102,8 @@ def index():
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-    # Validations: Must have username and password!
-    user = User.query.filter(User.id == data["id"]).first()
+    # import ipdb; ipdb.set_trace()
+    user = User.query.filter(User.name == data["name"]).first()
 
     # Is the user authenticated?
 
@@ -146,42 +146,30 @@ class Users(Resource):
     
 api.add_resource(Users, "/signup")
 
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
+# @app.route("/users/<int:id>", methods=["GET", "PATCH", "DELETE"])
+# def user_by_id(id):
+#     user = User.query.filter_by(id=id).first()
+#     if request.method == "GET":
 
-    user = User.query.filter(User.id == user.id).first()
-    # Error handling goes here. 
+#         response = make_response(user_schema.dump(user), 200)
+#         return response
 
+#     elif request.method == "PATCH":
+#         for attr in request.get_json():
+#             # ipdb.set_trace()
+#             setattr(user, attr, request.get_json()[attr])
 
-    session["user_id"] = user.id
+#         db.session.add(user)
+#         db.session.commit()
 
-    return user.to_dict(), 201
+#         return make_response(user_schema.dump(user), 200)
 
-@app.route("/users/<int:id>", methods=["GET", "PATCH", "DELETE"])
-def user_by_id(id):
-    user = User.query.filter_by(id=id).first()
-    if request.method == "GET":
+#     elif request.method == "DELETE":
+#         user = User.query.filter_by(id=id).first()
+#         db.session.delete(user)
+#         db.session.commit()
 
-        response = make_response(user_schema.dump(user), 200)
-        return response
-
-    elif request.method == "PATCH":
-        for attr in request.get_json():
-            # ipdb.set_trace()
-            setattr(user, attr, request.get_json()[attr])
-
-        db.session.add(user)
-        db.session.commit()
-
-        return make_response(user_schema.dump(user), 200)
-
-    elif request.method == "DELETE":
-        user = User.query.filter_by(id=id).first()
-        db.session.delete(user)
-        db.session.commit()
-
-        return make_response(user_schema.dump(user), 200)
+#         return make_response(user_schema.dump(user), 200)
 
 
 @app.route("/snippets", methods=["GET", "POST"])
