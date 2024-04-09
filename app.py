@@ -8,9 +8,15 @@ from marshmallow import fields
 import ipdb
 from marshmallow_sqlalchemy import SQLAlchemySchema
 from sqlalchemy_serializer import SerializerMixin
+from flask_cors import CORS
 
 
-# migrate = Migrate(app, db)
+
+app = Flask(__name__)
+#This secret key has been pushed to GitHub. Generate a new secret key before deployment. 
+app.secret_key = b'\xf5\xadOu\x94{\x05F\xf2/\xc2\xc1\xaa\x1a)%'
+CORS(app)
+
 
 from config import (
     app,
@@ -89,10 +95,20 @@ class TagSchema(ma.SQLAlchemySchema):
 tag_schema = TagSchema()
 tags_schema = TagSchema(many=True)
 
+@app.route("/cookies", methods=["GET"])
+def cookies():
+    resp = make_response({"message": "Hit cookies route!"}, 200)
+    resp.set_cookie("hello", "world")
+    # session["current_user"] = "jph94880"
+
+    return resp
 
 @app.route("/")
 def index():
-    return "<h1>CLI-Companion</h1>"
+    resp = make_response({"cli-companion": "Home route hit!"}, 200)
+    resp.set_cookie("CLI-Companion")
+
+    return resp
 
         # User object has no 'name' attribute. Must use either username, or email. Email must be unique if used. 
         # Will user = User.query.filter(User.id == data.id).first() work? Will React assign a different id to the object on the front-end than the object's server-side id?
@@ -141,12 +157,14 @@ class Users(Resource):
     
 api.add_resource(Users, "/signup")
 
+
 @app.route("/authorized", methods=["GET"])
+
 def authorized():
-    user = User.query.filter(User.id == session.get("user_id")).first()
+    user = User.query.filter(User.id == session.get("id")).first()
+    # session["current_user"] = user.username
     print(user)
     print(session)
-    # ipdb.set_trace()
     if user: 
         return user.to_dict(), 200
     else: 

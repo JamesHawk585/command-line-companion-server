@@ -68,14 +68,14 @@ class User(db.Model, SerializerMixin):
                 raise ValueError("last_name must be 100 characters or less")
         return last_name
 
-    @hybrid_property # Restrict access to the password hash.
-    def password_hash(self):
-        raise Exception("Password hashes may not be viewed.")
+    # @hybrid_property # Restrict access to the password hash.
+    # def password_hash(self):
+    #     raise Exception("Password hashes may not be viewed.")
 
-    @password_hash.setter # Generate a Bcrypt password hash and set it to the _password_hash attribute
-    def password_hash(self, password):
-        bcrypt_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-        self._password_hash = bcrypt_hash
+    # @password_hash.setter # Generate a Bcrypt password hash and set it to the _password_hash attribute
+    # def password_hash(self, password):
+    #     bcrypt_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+    #     self._password_hash = bcrypt_hash
 
     # def authenticate(self, password): # Check if the provided password matches the one stored in the db
     #     return bcrypt.check_password_hash(self._password_hash, password)
