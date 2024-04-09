@@ -115,20 +115,43 @@ class Users(Resource):
         users_list,
         200,
     )
-
         return response
+    
+    def post(self): 
+        form_json = request.get_json()
+        new_user = User(
+            email=form_json["email"],
+            first_name=form_json["first_name"],
+            last_name=form_json["last_name"],
+            username=form_json["username"],
+        )
+
+        db.session.add(new_user)
+        db.session.commit()
+
+        response_dict = new_user.to_dict()
+        
+        response = make_response(
+            response_dict,
+            201
+        )
+
+        return response 
 
     
 api.add_resource(Users, "/signup")
 
 @app.route("/authorized", methods=["GET"])
 def authorized():
-    if session.get("user_id"):
-        print("There is a user logged in")
-    else:
-        print("No session")
+    user = User.query.filter(User.id == session.get("user_id")).first()
+    print(user)
+    print(session)
+    # ipdb.set_trace()
+    if user: 
+        return user.to_dict(), 200
+    else: 
+        return {"errors": ["Unauthorized"]}, 401
 
-    return {}, 204
 
         # 2:02:00
 
