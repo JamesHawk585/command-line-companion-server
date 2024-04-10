@@ -1,29 +1,17 @@
-from flask import request, session
 from flask_restful import Resource
 from flask_marshmallow import Marshmallow, fields
-from flask import make_response, jsonify, request, session, Flask
+from flask import make_response, jsonify, request, Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from marshmallow import fields
 import ipdb
 from marshmallow_sqlalchemy import SQLAlchemySchema
 from sqlalchemy_serializer import SerializerMixin
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
+from flask_session import Session
+from config import app, db, api, ma
 
-
-
-app = Flask(__name__)
-#This secret key has been pushed to GitHub. Generate a new secret key before deployment. 
-app.secret_key = b'\xf5\xadOu\x94{\x05F\xf2/\xc2\xc1\xaa\x1a)%'
-CORS(app)
-
-
-from config import (
-    app,
-    db,
-    api,
-    ma,
-)  # This line will run the config.py file and initialize our app
+ # This line will run the config.py file and initialize our app
 from models import User, Snippet, Tag
 
 
@@ -99,8 +87,6 @@ tags_schema = TagSchema(many=True)
 def cookies():
     resp = make_response({"message": "Hit cookies route!"}, 200)
     resp.set_cookie("hello", "world")
-    # session["current_user"] = "jph94880"
-
     return resp
 
 @app.route("/")
@@ -110,10 +96,10 @@ def index():
 
     return resp
 
-        # User object has no 'name' attribute. Must use either username, or email. Email must be unique if used. 
-        # Will user = User.query.filter(User.id == data.id).first() work? Will React assign a different id to the object on the front-end than the object's server-side id?
-        #  How to test?  
 
+
+# This method checks if a user in the db has an id that matches the 
+# 'user_id' value in the session object. It is currently returning null. 
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -122,10 +108,27 @@ def login():
     user = User.query.filter(User.username == data["username"]).first()
 
     session["user_id"] = user.id
+
+
     return user.to_dict(), 201
+
+# UYsing a restful route seems to have eleminated the CORS error, but there is still no session to validate the db user id against. 
+
+class Authentication(Resource):
+    def get(self):
+        user = User.query.filter(User.id == session.get("user_id")).first()
+        if user: 
+            print(user.to_dict())
+            return user.to_dict(), 200
+        else: 
+            return {"errors": ["unauthorized"]}, 401
+        
+    
+api.add_resource(Authentication, "/authorized")
 
 class Users(Resource):
     def get(self):
+        print(session)
         users_list = [u.to_dict() for u in User.query.all()]
         response = make_response(
         users_list,
@@ -134,6 +137,7 @@ class Users(Resource):
         return response
     
     def post(self): 
+        print(session)
         form_json = request.get_json()
         new_user = User(
             email=form_json["email"],
@@ -141,6 +145,15 @@ class Users(Resource):
             last_name=form_json["last_name"],
             username=form_json["username"],
         )
+        
+        
+
+        session["username"] = new_user.username
+        session["email"] = new_user.email
+        session["first_name"] = new_user.first_name
+        session["last_name"] = new_user.last_name
+        session["user_id"] = new_user.id
+
 
         db.session.add(new_user)
         db.session.commit()
@@ -158,23 +171,9 @@ class Users(Resource):
 api.add_resource(Users, "/signup")
 
 
-@app.route("/authorized", methods=["GET"])
-
-def authorized():
-    user = User.query.filter(User.id == session.get("id")).first()
-    # session["current_user"] = user.username
-    print(user)
-    print(session)
-    if user: 
-        return user.to_dict(), 200
-    else: 
-        return {"errors": ["Unauthorized"]}, 401
-
-
-        # 2:02:00
-
 @app.route("/snippets", methods=["GET", "POST"])
 def snippets():
+
     # ipdb.set_trace()
     if request.method == "GET":
 

@@ -21,6 +21,9 @@ class User(db.Model, SerializerMixin):
 
     snippets = db.relationship("Snippet", backref='user')
 
+    def __repr__(self):
+        return f"\n<User id={self.id} username={self.username} email={self.email} first_name={self.first_name} last_name={self.last_name}>"
+
     @validates('username')
     def validate_username(self, key, username):
         username_exists = db.session.query(User).filter(User.username == username).first()
