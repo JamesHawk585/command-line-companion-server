@@ -11,6 +11,7 @@ from flask_cors import CORS, cross_origin
 from flask_session import Session
 from config import app, db, api, ma
 
+
  # This line will run the config.py file and initialize our app
 from models import User, Snippet, Tag
 
