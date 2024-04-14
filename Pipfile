@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+flask-session = "*"
 flask = "*"
 flask-sqlalchemy = "*"
 flask-migrate = "*"
@@ -13,11 +14,8 @@ flask-cors = "*"
 ipdb = "*"
 flask-bcrypt = "*"
 faker = "*"
-flask-marshmallow = "*"
-marshmallow-sqlalchemy = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.8"
-python_full_version = "3.8.13"

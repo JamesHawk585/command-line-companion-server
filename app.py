@@ -1,23 +1,18 @@
-from flask import request, session
 from flask_restful import Resource
 from flask_marshmallow import Marshmallow, fields
-from flask import make_response, jsonify, request, session, Flask
+from flask import make_response, jsonify, request, Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from marshmallow import fields
 import ipdb
 from marshmallow_sqlalchemy import SQLAlchemySchema
 from sqlalchemy_serializer import SerializerMixin
+from flask_cors import CORS, cross_origin
+from flask_session import Session
+from config import app, db, api, ma
 
 
-# migrate = Migrate(app, db)
-
-from config import (
-    app,
-    db,
-    api,
-    ma,
-)  # This line will run the config.py file and initialize our app
+ # This line will run the config.py file and initialize our app
 from models import User, Snippet, Tag
 
 
@@ -89,111 +84,97 @@ class TagSchema(ma.SQLAlchemySchema):
 tag_schema = TagSchema()
 tags_schema = TagSchema(many=True)
 
+@app.route("/cookies", methods=["GET"])
+def cookies():
+    resp = make_response({"message": "Hit cookies route!"}, 200)
+    resp.set_cookie("hello", "world")
+    return resp
 
 @app.route("/")
 def index():
-    return "<h1>CLI-Companion</h1>"
+    resp = make_response({"cli-companion": "Home route hit!"}, 200)
+    resp.set_cookie("CLI-Companion")
+
+    return resp
 
 
-# @app.route("/users", methods=["GET", "POST"])
-# def users():
-#     # ipdb.set_trace()
-#     if request.method == "GET":
 
-#         users = User.query.all()
-
-#         response = make_response(users_schema.dump(users), 200)
-#         return response
-
-#     elif request.method == "POST":
-#         json_dict = request.get_json()
-
-#         user = User(
-#             id=json_dict["id"],
-#             username=json_dict["username"],
-#             email=json_dict["email"],
-#             first_name=json_dict["first_name"],
-#             last_name=json_dict["last_name"],
-#         )
-
-#         db.session.add(user)
-#         db.session.commit()
-
-#         response = make_response(user_schema.dump(user), 201)
-
-#         return response
-
-        # User object has no 'name' attribute. Must use either username, or email. Email must be unique if used. 
-        # Will user = User.query.filter(User.id == data.id).first() work? Will React assign a different id to the object on the front-end than the object's server-side id?
-        #  How to test?  
-
+# This method checks if a user in the db has an id that matches the 
+# 'user_id' value in the session object. It is currently returning null. 
 
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-    # Validations: Must have username and password!
-    user = User.query.filter(User.id == data["id"]).first()
-
-    # Is the user authenticated?
+    # import ipdb; ipdb.set_trace()
+    user = User.query.filter(User.username == data["username"]).first()
 
     session["user_id"] = user.id
+
+
     return user.to_dict(), 201
 
+# UYsing a restful route seems to have eleminated the CORS error, but there is still no session to validate the db user id against. 
+
+class Authentication(Resource):
+    def get(self):
+        user = User.query.filter(User.id == session.get("user_id")).first()
+        if user: 
+            print(user.to_dict())
+            return user.to_dict(), 200
+        else: 
+            return {"errors": ["unauthorized"]}, 401
+        
+    
+api.add_resource(Authentication, "/authorized")
+
 class Users(Resource):
-    def post(self):
-    # Declare data variable and set equal to the request body. Calling the get_json() method on the request body will serialize the request into json. 
-        data = request.get_json()
-
-    # Declare a user variable set as eaqual to a new sintance of the user class. Each attribute of the new user object will be populated with the corresponding attribute in the body of the request, which has been serialized into json. 
-        user = User(
-            email=data["email"],
-            first_name=data["first_name"],
-            last_name=data["last_name"],
-            username=data["username"]
+    def get(self):
+        print(session)
+        users_list = [u.to_dict() for u in User.query.all()]
+        response = make_response(
+        users_list,
+        200,
+    )
+        return response
+    
+    def post(self): 
+        print(session)
+        form_json = request.get_json()
+        new_user = User(
+            email=form_json["email"],
+            first_name=form_json["first_name"],
+            last_name=form_json["last_name"],
+            username=form_json["username"],
         )
+        
+        
 
-    # Add new user object to the sessiona and commit.  
+        session["username"] = new_user.username
+        session["email"] = new_user.email
+        session["first_name"] = new_user.first_name
+        session["last_name"] = new_user.last_name
+        session["user_id"] = new_user.id
 
-        db.session.add(user)
+
+        db.session.add(new_user)
         db.session.commit()
 
-        # Declare a session id for the user. Set it equal to the new user objetcs id attribute. 
+        response_dict = new_user.to_dict()
+        
+        response = make_response(
+            response_dict,
+            201
+        )
 
-        session["user_id"] = user.id
+        return response 
 
-        return user.to_dict(), 201
     
 api.add_resource(Users, "/signup")
 
 
-@app.route("/users/<int:id>", methods=["GET", "PATCH", "DELETE"])
-def user_by_id(id):
-    user = User.query.filter_by(id=id).first()
-    if request.method == "GET":
-
-        response = make_response(user_schema.dump(user), 200)
-        return response
-
-    elif request.method == "PATCH":
-        for attr in request.get_json():
-            # ipdb.set_trace()
-            setattr(user, attr, request.get_json()[attr])
-
-        db.session.add(user)
-        db.session.commit()
-
-        return make_response(user_schema.dump(user), 200)
-
-    elif request.method == "DELETE":
-        user = User.query.filter_by(id=id).first()
-        db.session.delete(user)
-        db.session.commit()
-
-        return make_response(user_schema.dump(user), 200)
-
-
 @app.route("/snippets", methods=["GET", "POST"])
 def snippets():
+
     # ipdb.set_trace()
     if request.method == "GET":
 

@@ -21,6 +21,9 @@ class User(db.Model, SerializerMixin):
 
     snippets = db.relationship("Snippet", backref='user')
 
+    def __repr__(self):
+        return f"\n<User id={self.id} username={self.username} email={self.email} first_name={self.first_name} last_name={self.last_name}>"
+
     @validates('username')
     def validate_username(self, key, username):
         username_exists = db.session.query(User).filter(User.username == username).first()
@@ -68,17 +71,17 @@ class User(db.Model, SerializerMixin):
                 raise ValueError("last_name must be 100 characters or less")
         return last_name
 
-    @hybrid_property # Restrict access to the password hash.
-    def password_hash(self):
-        raise Exception("Password hashes may not be viewed.")
+    # @hybrid_property # Restrict access to the password hash.
+    # def password_hash(self):
+    #     raise Exception("Password hashes may not be viewed.")
 
-    @password_hash.setter # Generate a Bcrypt password hash and set it to the _password_hash attribute
-    def password_hash(self, password):
-        bcrypt_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-        self._password_hash = bcrypt_hash
+    # @password_hash.setter # Generate a Bcrypt password hash and set it to the _password_hash attribute
+    # def password_hash(self, password):
+    #     bcrypt_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+    #     self._password_hash = bcrypt_hash
 
-    def authenticate(self, password): # Check if the provided password matches the one stored in the db
-        return bcrypt.check_password_hash(self._password_hash, password)
+    # def authenticate(self, password): # Check if the provided password matches the one stored in the db
+    #     return bcrypt.check_password_hash(self._password_hash, password)
 
     def __repr__(self):
         return f"User {self.username}"
