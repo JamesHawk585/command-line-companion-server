@@ -127,49 +127,22 @@ class Authentication(Resource):
     
 api.add_resource(Authentication, "/authorized")
 
-class Users(Resource):
-    def get(self):
-        print(session)
-        users_list = [u.to_dict() for u in User.query.all()]
-        response = make_response(
-        users_list,
-        200,
-    )
-        return response
-    
-    def post(self): 
-        print(session)
-        form_json = request.get_json()
-        new_user = User(
-            email=form_json["email"],
-            first_name=form_json["first_name"],
-            last_name=form_json["last_name"],
-            username=form_json["username"],
-        )
-        
-        
+@app.route("/logout", methods=["DELETE"])
+def logout():
+    session['user_id'] = None
+    print(session)
+    return {}, 204
 
-        session["username"] = new_user.username
-        session["email"] = new_user.email
-        session["first_name"] = new_user.first_name
-        session["last_name"] = new_user.last_name
-        session["user_id"] = new_user.id
+@app.route("/signup", methods=["POST"])
+def signup():
+    data = request.get_json()
+    new_user = User(email=data["email"], first_name=data["first_name"], last_name=data["last_name"], username=data["username"])
+    # new_user.set_password(data["password"])
+    db.session.add(new_user)
+    db.session.commit()
 
-
-        db.session.add(new_user)
-        db.session.commit()
-
-        response_dict = new_user.to_dict()
-        
-        response = make_response(
-            response_dict,
-            201
-        )
-
-        return response 
-
-    
-api.add_resource(Users, "/signup")
+    session["user_id"] = new_user.id
+    return jsonify({"message": "User created successfully"}), 201
 
 
 @app.route("/snippets", methods=["GET", "POST"])
