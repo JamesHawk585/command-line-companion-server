@@ -17,7 +17,7 @@ class User(db.Model, SerializerMixin):
     email = db.Column(db.String, unique=True)
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
-    # _password_hash = db.Column(db.String)
+    _password_hash = db.Column(db.String)
 
     snippets = db.relationship("Snippet", backref='user')
 
