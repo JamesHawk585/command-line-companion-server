@@ -102,16 +102,6 @@ def index():
 # This method checks if a user in the db has an id that matches the 
 # 'user_id' value in the session object. It is currently returning null. 
 
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-    # import ipdb; ipdb.set_trace()
-    user = User.query.filter(User.username == data["username"]).first()
-
-    session["user_id"] = user.id
-
-
-    return user.to_dict(), 201
 
 # UYsing a restful route seems to have eleminated the CORS error, but there is still no session to validate the db user id against. 
 
@@ -127,6 +117,27 @@ class Authentication(Resource):
     
 api.add_resource(Authentication, "/authorized")
 
+def check_for_missing_values(data):
+    errors = []
+    for key, value in data.items():
+        if not value: 
+            errors.append(f"{key} is required")
+    return errors 
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    # import ipdb; ipdb.set_trace()
+    user = User.query.filter(User.username == data["username"]).first()
+    errors = check_for_missing_values(data)
+    if len(errors) > 0:
+        return {"errors": errors}, 422
+
+    session["user_id"] = user.id
+
+
+    return user.to_dict(), 201
+
 @app.route("/logout", methods=["DELETE"])
 def logout():
     session['user_id'] = None
@@ -138,6 +149,11 @@ def signup():
     data = request.get_json()
     new_user = User(email=data["email"], first_name=data["first_name"], last_name=data["last_name"], username=data["username"])
     # new_user.set_password(data["password"])
+    errors = check_for_missing_values(data)
+    if len(errors) > 0:
+        return {"errors": errors}, 422
+
+
     db.session.add(new_user)
     db.session.commit()
 

@@ -13,10 +13,10 @@ snippets_tags_join_table = db.Table('snippet_to_tag',
 class User(db.Model, SerializerMixin):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
+    username = db.Column(db.String(100), unique=True)
     email = db.Column(db.String, unique=True)
-    first_name = db.Column(db.String(100), nullable=False)
-    last_name = db.Column(db.String(100), nullable=False)
+    first_name = db.Column(db.String(100))
+    last_name = db.Column(db.String(100))
     _password_hash = db.Column(db.String)
 
     snippets = db.relationship("Snippet", backref='user')
@@ -27,8 +27,8 @@ class User(db.Model, SerializerMixin):
     @validates('username')
     def validate_username(self, key, username):
         username_exists = db.session.query(User).filter(User.username == username).first()
-        if not username:
-            raise ValueError("username field is required")
+        # if not username:
+        #     raise ValueError("username field is required")
         if username_exists:
             raise ValueError("username must be unique")
         elif key == 'username':
@@ -39,8 +39,8 @@ class User(db.Model, SerializerMixin):
     @validates('email')
     def validate_username(self, key, email):
         email_exists = db.session.query(User).filter(User.email == email).first()
-        if not email:
-            raise ValueError("email field is required")
+        # if not email:
+        #     raise ValueError("email field is required")
         if email_exists:
             raise ValueError("email must be unique")
         if "@" not in email: 
@@ -55,33 +55,34 @@ class User(db.Model, SerializerMixin):
     
     @validates('first_name')
     def validate_username(self, key, first_name):
-        if not first_name:
-            raise ValueError("first_name field is required")
-        elif key == 'first_name':
+        # if not first_name:
+        #     raise ValueError("first_name field is required")
+        if key == 'first_name':
             if len(first_name) >= 100:
                 raise ValueError("first_name must be 100 characters or less")
         return first_name
     
     @validates('last_name')
     def validate_username(self, key, last_name):
-        if not last_name:
-            raise ValueError("last_name field is required")
-        elif key == 'last_name':
+        # if not last_name:
+        #     raise ValueError("last_name field is required")
+        if key == 'last_name':
             if len(last_name) >= 100:
                 raise ValueError("last_name must be 100 characters or less")
         return last_name
 
-    # @hybrid_property # Restrict access to the password hash.
-    # def password_hash(self):
-    #     raise Exception("Password hashes may not be viewed.")
+    @hybrid_property # Restrict access to the password hash.
+    def password_hash(self):
+        raise Exception("Password hashes may not be viewed.")
+        # return self.password_hash
 
-    # # @password_hash.setter # Generate a Bcrypt password hash and set it to the _password_hash attribute
-    # def password_hash(self, password):
-    #     bcrypt_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-    #     self._password_hash = bcrypt_hash
+    # @password_hash.setter # Generate a Bcrypt password hash and set it to the _password_hash attribute
+    def password_hash(self, password):
+        bcrypt_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+        self._password_hash = bcrypt_hash
 
-    # def authenticate(self, password): # Check if the provided password matches the one stored in the db
-    #     return bcrypt.check_password_hash(self._password_hash, password)
+    def authenticate(self, password): # Check if the provided password matches the one stored in the db
+        return bcrypt.check_password_hash(self._password_hash, password)
 
     def __repr__(self):
         return f"User {self.username}"
