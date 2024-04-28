@@ -12,7 +12,7 @@ from flask_session import Session
 from config import app, db, api, ma
 
 
- # This line will run the config.py file and initialize our app
+# This line will run the config.py file and initialize our app
 from models import User, Snippet, Tag
 
 
@@ -84,11 +84,13 @@ class TagSchema(ma.SQLAlchemySchema):
 tag_schema = TagSchema()
 tags_schema = TagSchema(many=True)
 
+
 @app.route("/cookies", methods=["GET"])
 def cookies():
     resp = make_response({"message": "Hit cookies route!"}, 200)
     resp.set_cookie("hello", "world")
     return resp
+
 
 @app.route("/")
 def index():
@@ -98,61 +100,71 @@ def index():
     return resp
 
 
+# This method checks if a user in the db has an id that matches the
+# 'user_id' value in the session object. It is currently returning null.
 
-# This method checks if a user in the db has an id that matches the 
-# 'user_id' value in the session object. It is currently returning null. 
 
+# UYsing a restful route seems to have eleminated the CORS error, but there is still no session to validate the db user id against.
 
-# UYsing a restful route seems to have eleminated the CORS error, but there is still no session to validate the db user id against. 
 
 class Authentication(Resource):
     def get(self):
         user = User.query.filter(User.id == session.get("user_id")).first()
-        if user: 
+        if user:
             print(user.to_dict())
             return user.to_dict(), 200
-        else: 
+        else:
             return {"errors": ["unauthorized"]}, 401
-        
-    
+
+
 api.add_resource(Authentication, "/authorized")
+
 
 def check_for_missing_values(data):
     errors = []
     for key, value in data.items():
-        if not value: 
+        if not value:
             errors.append(f"{key} is required")
-    return errors 
+    return errors
+
 
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
     # import ipdb; ipdb.set_trace()
     user = User.query.filter(User.username == data["username"]).first()
+    print(session)
     errors = check_for_missing_values(data)
     if len(errors) > 0:
         return {"errors": errors}, 422
 
     session["user_id"] = user.id
 
-
     return user.to_dict(), 201
+
 
 @app.route("/logout", methods=["DELETE"])
 def logout():
-    session['user_id'] = None
+    session["user_id"] = None
     print(session)
     return {}, 204
+
 
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
-    new_user = User(email=data["email"], first_name=data["first_name"], last_name=data["last_name"], username=data["username"])
+    new_user = User(
+        email=data["email"],
+        first_name=data["first_name"],
+        last_name=data["last_name"],
+        username=data["username"],
+    )
     # new_user.set_password(data["password"])
+
+    print(session)
     errors = check_for_missing_values(data)
     if len(errors) > 0:
         return {"errors": errors}, 422
-
 
     db.session.add(new_user)
     db.session.commit()
@@ -160,17 +172,19 @@ def signup():
     session["user_id"] = new_user.id
     return jsonify({"message": "User created successfully"}), 201
 
+
 class Users(Resource):
     def get(self):
         users_list = [u.to_dict() for u in User.query.all()]
-        resp = make_response(
-            users_list,
-            200
-        )
+        resp = make_response(users_list, 200)
+
+        print(session)
 
         return resp
-    
+
+
 api.add_resource(Users, "/users")
+
 
 @app.route("/snippets", methods=["GET", "POST"])
 def snippets():

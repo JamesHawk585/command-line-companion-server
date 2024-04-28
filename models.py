@@ -76,7 +76,7 @@ class User(db.Model, SerializerMixin):
         raise Exception("Password hashes may not be viewed.")
         # return self.password_hash
 
-    # @password_hash.setter # Generate a Bcrypt password hash and set it to the _password_hash attribute
+    @password_hash.setter # Generate a Bcrypt password hash and set it to the _password_hash attribute
     def password_hash(self, password):
         bcrypt_hash = bcrypt.generate_password_hash(password).decode("utf-8")
         self._password_hash = bcrypt_hash
