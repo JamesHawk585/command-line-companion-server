@@ -160,6 +160,17 @@ def signup():
     session["user_id"] = new_user.id
     return jsonify({"message": "User created successfully"}), 201
 
+class Users(Resource):
+    def get(self):
+        users_list = [u.to_dict() for u in User.query.all()]
+        resp = make_response(
+            users_list,
+            200
+        )
+
+        return resp
+    
+api.add_resource(Users, "/users")
 
 @app.route("/snippets", methods=["GET", "POST"])
 def snippets():
