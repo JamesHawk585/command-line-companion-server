@@ -133,12 +133,12 @@ def login():
     data = request.get_json()
     # import ipdb; ipdb.set_trace()
     user = User.query.filter(User.username == data["username"]).first()
+    session["user_id"] = user.id
     print(session)
     errors = check_for_missing_values(data)
     if len(errors) > 0:
         return {"errors": errors}, 422
 
-    session["user_id"] = user.id
 
     return user.to_dict(), 201
 
@@ -173,17 +173,17 @@ def signup():
     return jsonify({"message": "User created successfully"}), 201
 
 
-class Users(Resource):
-    def get(self):
-        users_list = [u.to_dict() for u in User.query.all()]
-        resp = make_response(users_list, 200)
+# class Users(Resource):
+#     def get(self):
+#         users_list = [u.to_dict() for u in User.query.all()]
+#         resp = make_response(users_list, 200)
 
-        print(session)
+#         print(session)
 
-        return resp
+#         return resp
 
 
-api.add_resource(Users, "/users")
+# api.add_resource(Users, "/users")
 
 
 @app.route("/snippets", methods=["GET", "POST"])
