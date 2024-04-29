@@ -133,14 +133,17 @@ def login():
     data = request.get_json()
     # import ipdb; ipdb.set_trace()
     user = User.query.filter(User.username == data["username"]).first()
-    session["user_id"] = user.id
-    print(session)
-    errors = check_for_missing_values(data)
-    if len(errors) > 0:
-        return {"errors": errors}, 422
+    if user:
+        session["user_id"] = user.id
+        print(session)
+        return user.to_dict(), 201
+    else: 
+        errors = check_for_missing_values(data)
+        if len(errors) > 0:
+            return {"errors": errors}, 422
 
 
-    return user.to_dict(), 201
+    
 
 
 @app.route("/logout", methods=["DELETE"])
@@ -159,18 +162,20 @@ def signup():
         last_name=data["last_name"],
         username=data["username"],
     )
-    # new_user.set_password(data["password"])
-
-    print(session)
-    errors = check_for_missing_values(data)
-    if len(errors) > 0:
-        return {"errors": errors}, 422
-
     db.session.add(new_user)
     db.session.commit()
 
-    session["user_id"] = new_user.id
-    return jsonify({"message": "User created successfully"}), 201
+    user = User.query.filter(User.username == data["username"]).first()
+    if user:
+        session["user_id"] = user.id
+        print(session)
+        return user.to_dict(), 201
+    else: 
+        errors = check_for_missing_values(data)
+        print(session)
+        if len(errors) > 0:
+            return {"errors": errors}, 422
+
 
 
 # class Users(Resource):
