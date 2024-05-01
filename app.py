@@ -28,7 +28,7 @@ class UserSchema(ma.SQLAlchemySchema):
     email = ma.auto_field()
     first_name = ma.auto_field()
     last_name = ma.auto_field()
-    # _password_hash = ma.auto_field(load_only=True)
+    _password_hash = ma.auto_field(load_only=True)
 
     url = ma.Hyperlinks(
         {
@@ -166,7 +166,7 @@ def signup():
     )
 
     user = User.query.filter(User.username == data["username"]).first()
-    user.password_hash = data['password']
+    user._password_hash = data['password']
     errors = []
 
     try: 
