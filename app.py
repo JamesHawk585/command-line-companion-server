@@ -10,6 +10,7 @@ from sqlalchemy_serializer import SerializerMixin
 from flask_cors import CORS, cross_origin
 from flask_session import Session
 from config import app, db, api, ma
+from sqlalchemy.exc import IntegrityError
 
 
 # This line will run the config.py file and initialize our app
@@ -136,6 +137,7 @@ def login():
     if user:
         session["user_id"] = user.id
         print(session)
+        user.password_hash = data['password']
         return user.to_dict(), 201
     else: 
         errors = check_for_missing_values(data)
@@ -162,19 +164,28 @@ def signup():
         last_name=data["last_name"],
         username=data["username"],
     )
-    db.session.add(new_user)
-    db.session.commit()
 
     user = User.query.filter(User.username == data["username"]).first()
-    if user:
+    user.password_hash = data['password']
+    errors = []
+
+    try: 
+        db.session.add(new_user)
+        db.session.commit()
         session["user_id"] = user.id
         print(session)
         return user.to_dict(), 201
-    else: 
-        errors = check_for_missing_values(data)
-        print(session)
-        if len(errors) > 0:
-            return {"errors": errors}, 422
+
+    except IntegrityError as e:
+        print(e)
+        print(e.origin.args)
+        if isinstance(e, (IntegrityError)):
+            for error in e.orig.args:
+                if "UNIQUE" in error:
+                    errors.append("Username already taken. Please try again")
+
+        return {"errors": errors}, 422
+
 
 
 
