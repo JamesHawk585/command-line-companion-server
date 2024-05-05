@@ -100,14 +100,6 @@ def index():
 
     return resp
 
-
-# This method checks if a user in the db has an id that matches the
-# 'user_id' value in the session object. It is currently returning null.
-
-
-# UYsing a restful route seems to have eleminated the CORS error, but there is still no session to validate the db user id against.
-
-
 class Authentication(Resource):
     def get(self):
         user = User.query.filter(User.id == session.get("user_id")).first()
@@ -129,78 +121,44 @@ def check_for_missing_values(data):
     return errors
 
 
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-    # import ipdb; ipdb.set_trace()
-    user = User.query.filter(User.username == data["username"]).first()
-    if user:
-        session["user_id"] = user.id
+
+
+
+class Users(Resource):
+    def get(self):
+        users_list = [u.to_dict() for u in User.query.all()]
+        resp = make_response(users_list, 200)
+
         print(session)
-        user.password_hash = data['password']
-        return user.to_dict(), 201
-    else: 
-        errors = check_for_missing_values(data)
-        if len(errors) > 0:
-            return {"errors": errors}, 422
 
-
+        return resp
     
+    def post(self):
+        username = request.get_json()['username']
+        password = request.get_json()['password']
 
+        if username and password:
+
+            new_user = User(username=username)
+            new_user.password_hash = password
+
+            db.session.add(new_user)
+            db.session.commit()
+
+            session['user_id'] = new_user.id
+
+            return new_user.to_dict(), 201
+
+        return {'error': '422 Unprocessable entity'}, 422 
+
+
+api.add_resource(Users, "/users")
 
 @app.route("/logout", methods=["DELETE"])
 def logout():
     session["user_id"] = None
     print(session)
     return {}, 204
-
-
-@app.route("/signup", methods=["POST"])
-def signup():
-    data = request.get_json()
-    new_user = User(
-        email=data["email"],
-        first_name=data["first_name"],
-        last_name=data["last_name"],
-        username=data["username"],
-    )
-
-    user = User.query.filter(User.username == data["username"]).first()
-    user._password_hash = data['password']
-    errors = []
-
-    try: 
-        db.session.add(new_user)
-        db.session.commit()
-        session["user_id"] = user.id
-        print(session)
-        return user.to_dict(), 201
-
-    except IntegrityError as e:
-        print(e)
-        print(e.origin.args)
-        if isinstance(e, (IntegrityError)):
-            for error in e.orig.args:
-                if "UNIQUE" in error:
-                    errors.append("Username already taken. Please try again")
-
-        return {"errors": errors}, 422
-
-
-
-
-# class Users(Resource):
-#     def get(self):
-#         users_list = [u.to_dict() for u in User.query.all()]
-#         resp = make_response(users_list, 200)
-
-#         print(session)
-
-#         return resp
-
-
-# api.add_resource(Users, "/users")
-
 
 @app.route("/snippets", methods=["GET", "POST"])
 def snippets():
