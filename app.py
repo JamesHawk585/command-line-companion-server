@@ -100,6 +100,7 @@ def index():
 
     return resp
 
+
 class Authentication(Resource):
     def get(self):
         user = User.query.filter(User.id == session.get("user_id")).first()
@@ -121,9 +122,6 @@ def check_for_missing_values(data):
     return errors
 
 
-
-
-
 class Users(Resource):
     def get(self):
         users_list = [u.to_dict() for u in User.query.all()]
@@ -132,33 +130,70 @@ class Users(Resource):
         print(session)
 
         return resp
-    
-    def post(self):
-        username = request.get_json()['username']
-        password = request.get_json()['password']
-
-        if username and password:
-
-            new_user = User(username=username)
-            new_user.password_hash = password
-
-            db.session.add(new_user)
-            db.session.commit()
-
-            session['user_id'] = new_user.id
-
-            return new_user.to_dict(), 201
-
-        return {'error': '422 Unprocessable entity'}, 422 
 
 
 api.add_resource(Users, "/users")
+
+
+class Signup(Resource):
+    def post(self):
+        data = request.get_json()
+
+        user = User(
+            username=data["username"],
+            first_name=data["first_name"],
+            lastst_name=data["last_name"],
+            email=data["email"],
+        )
+
+        user.password_hash = data["password"]
+        try:
+            db.session.add(user)
+            db.session.commit()
+            session["user_id"] = user.id
+            return user.to_dict(), 201
+        except IntegrityError as e:
+            errors = []
+            required_keys = [
+                "username",
+                "password",
+                "password_confirmation",
+                "email",
+                "first_name",
+                "last_name",
+            ]
+
+            #  If value is an empty string, append message to errors 
+            for key in required_keys:
+                if not data[key]:
+                    errors.append(f"{key} is required")
+            # # If password confirmation does not match provided password, append error message to errors list
+            if data['username'] != data['password_confirmation']:
+                errors.append("Password confirmation failed")
+
+            if isinstance(e, (IntegrityError)):
+                for error in e.orig.args:
+                    errors.append(str(error))
+
+            return {'errors': errors}, 422
+
+
+
+
+class Login(Resource):
+    def post(self):
+        username = request.get_json()["username"]
+        password = request.get_json()["password"]
+
+        user = User.query.filter(User.username == username).first()
+
 
 @app.route("/logout", methods=["DELETE"])
 def logout():
     session["user_id"] = None
     print(session)
     return {}, 204
+
 
 @app.route("/snippets", methods=["GET", "POST"])
 def snippets():
