@@ -85,7 +85,7 @@ class User(db.Model, SerializerMixin):
         return bcrypt.check_password_hash(self._password_hash, password)
 
     def __repr__(self):
-        return f"User {self.username}"
+        return f"User {self.username}, ID: {self.id}"
 
 class Snippet(db.Model):
     __tablename__ = "snippet"

@@ -142,7 +142,7 @@ class Signup(Resource):
         user = User(
             username=data["username"],
             first_name=data["first_name"],
-            lastst_name=data["last_name"],
+            last_name=data["last_name"],
             email=data["email"],
         )
 
@@ -176,6 +176,8 @@ class Signup(Resource):
                     errors.append(str(error))
 
             return {'errors': errors}, 422
+        
+api.add_resource(Signup, "/signup")
 
 
 
@@ -186,6 +188,14 @@ class Login(Resource):
         password = request.get_json()["password"]
 
         user = User.query.filter(User.username == username).first()
+
+        if user.authenticate(password):
+            session['user_id'] = user.id
+            return user.to_dict(), 200
+        
+        return {"error": "401 Unauthorized"}, 401
+    
+api.add_resource(Login, "/login")
 
 
 @app.route("/logout", methods=["DELETE"])
