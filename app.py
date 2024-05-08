@@ -200,13 +200,19 @@ class Login(Resource):
         username = request.get_json()["username"]
         password = request.get_json()["password"]
 
+        if not username or not password:
+            return {"errors": ["Username and password are required"]}, 400
+
         user = User.query.filter(User.username == username).first()
+
+        if not user:
+            return {"errors": ["No user found"]}, 404
 
         if user.authenticate(password):
             session['user_id'] = user.id
             return user.to_dict(), 200
-        
-        return {"error": "401 Unauthorized"}, 401
+        else: 
+            return {"errors": ["401 Unauthorized"]}, 401
     
 api.add_resource(Login, "/login")
 
