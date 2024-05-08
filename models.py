@@ -96,7 +96,7 @@ class Snippet(db.Model):
     code = db.Column(db.String(500), nullable=False)
     explanation = db.Column(db.String(1000))
 
-    # Associates snippet with user in one to many relationship 
+    # Code snippets user_id attribute is null  
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
 
     # Assocaites tag 
