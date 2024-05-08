@@ -201,12 +201,12 @@ class Login(Resource):
         password = request.get_json()["password"]
 
         if not username or not password:
-            return {"errors": ["Username and password are required"]}, 400
+            return {"errors": ["username or password is incorrect"]}, 400
 
         user = User.query.filter(User.username == username).first()
 
         if not user:
-            return {"errors": ["No user found"]}, 404
+            return {"errors": ["username or password is incorrect"]}, 404
 
         if user.authenticate(password):
             session['user_id'] = user.id
