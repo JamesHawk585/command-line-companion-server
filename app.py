@@ -135,25 +135,33 @@ class Users(Resource):
 api.add_resource(Users, "/users")
 
 
+
 class Signup(Resource):
     def post(self):
         data = request.get_json()
 
-        user = User(
-            username=data["username"],
-            first_name=data["first_name"],
-            last_name=data["last_name"],
-            email=data["email"],
-        )
+        errors = []
+        if data['password'] != data['password_confirmation']:
+            errors.append("Password confirmation failed")
+            return {'errors': errors}, 400
+        else: 
 
-        user.password_hash = data["password"]
+            user = User(
+                username=data["username"],
+                first_name=data["first_name"],
+                last_name=data["last_name"],
+                email=data["email"],
+            )
+
+            user.password_hash = data["password"]
+            print(data)
+
         try:
+            session["user_id"] = user.id
             db.session.add(user)
             db.session.commit()
-            session["user_id"] = user.id
             return user.to_dict(), 201
         except IntegrityError as e:
-            errors = []
             required_keys = [
                 "username",
                 "password",
@@ -163,17 +171,20 @@ class Signup(Resource):
                 "last_name",
             ]
 
+            # Need to invoke the check_for_missing_values function  
+
             #  If value is an empty string, append message to errors 
             for key in required_keys:
                 if not data[key]:
                     errors.append(f"{key} is required")
             # # If password confirmation does not match provided password, append error message to errors list
-            if data['username'] != data['password_confirmation']:
-                errors.append("Password confirmation failed")
+            # if data['password'] != data['password_confirmation']:
+            #     errors.append("Password confirmation failed")
 
             if isinstance(e, (IntegrityError)):
                 for error in e.orig.args:
                     errors.append(str(error))
+                    print(errors)
 
             return {'errors': errors}, 422
         
@@ -181,6 +192,8 @@ api.add_resource(Signup, "/signup")
 
 
 
+# =========> 1:46:08 <=========
+ 
 
 class Login(Resource):
     def post(self):
