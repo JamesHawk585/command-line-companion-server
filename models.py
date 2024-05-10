@@ -13,11 +13,11 @@ snippets_tags_join_table = db.Table('snippet_to_tag',
 class User(db.Model, SerializerMixin):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True)
-    email = db.Column(db.String, unique=True)
-    first_name = db.Column(db.String(100))
-    last_name = db.Column(db.String(100))
-    _password_hash = db.Column(db.String)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
+    _password_hash = db.Column(db.String, nullable=False)
 
     snippets = db.relationship("Snippet", backref='user')
 
@@ -39,8 +39,8 @@ class User(db.Model, SerializerMixin):
     @validates('email')
     def validate_username(self, key, email):
         email_exists = db.session.query(User).filter(User.email == email).first()
-        # if not email:
-        #     raise ValueError("email field is required")
+        if not email:
+            raise ValueError("email field is required")
         if email_exists:
             raise ValueError("email must be unique")
         if "@" not in email: 
@@ -55,8 +55,8 @@ class User(db.Model, SerializerMixin):
     
     @validates('first_name')
     def validate_username(self, key, first_name):
-        # if not first_name:
-        #     raise ValueError("first_name field is required")
+        if not first_name:
+            raise ValueError("first_name field is required")
         if key == 'first_name':
             if len(first_name) >= 100:
                 raise ValueError("first_name must be 100 characters or less")
@@ -64,8 +64,8 @@ class User(db.Model, SerializerMixin):
     
     @validates('last_name')
     def validate_username(self, key, last_name):
-        # if not last_name:
-        #     raise ValueError("last_name field is required")
+        if not last_name:
+            raise ValueError("last_name field is required")
         if key == 'last_name':
             if len(last_name) >= 100:
                 raise ValueError("last_name must be 100 characters or less")
