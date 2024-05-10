@@ -27,8 +27,8 @@ class User(db.Model, SerializerMixin):
     @validates('username')
     def validate_username(self, key, username):
         username_exists = db.session.query(User).filter(User.username == username).first()
-        # if not username:
-        #     raise ValueError("username field is required")
+        if not username:
+            raise ValueError("username field is required")
         if username_exists:
             raise ValueError("username must be unique")
         elif key == 'username':
