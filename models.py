@@ -19,7 +19,7 @@ class User(db.Model, SerializerMixin):
     last_name = db.Column(db.String(100), nullable=False)
     _password_hash = db.Column(db.String, nullable=False)
 
-    snippets = db.relationship("Snippet", backref='user')
+    snippets = db.relationship('Snippet', backref='user')
 
     def __repr__(self):
         return f"\n<User id={self.id} username={self.username} email={self.email} first_name={self.first_name} last_name={self.last_name}>"
@@ -97,7 +97,7 @@ class Snippet(db.Model):
     explanation = db.Column(db.String(1000))
 
     # Code snippets user_id attribute is null  
-    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'), nullable=False)
 
     # Assocaites tag 
     tag = db.relationship('Tag', secondary=snippets_tags_join_table, backref="snippet")
