@@ -234,8 +234,6 @@ def snippets():
         # snippets = Snippet.query.all()
         snippets = Snippet.query.filter(Snippet.user_id == session.get("user_id"))
 
-        # user = User.query.filter(User.id == session.get("user_id"))
-
 
         response = make_response(snippets_schema.dump(snippets), 200)
         return response
