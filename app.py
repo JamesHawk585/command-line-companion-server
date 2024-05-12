@@ -54,6 +54,7 @@ class SnippetSchema(ma.SQLAlchemySchema):
     language_select = ma.auto_field()
     code = ma.auto_field()
     explanation = ma.auto_field()
+    user_id = ma.auto_field()
 
     url = ma.Hyperlinks(
         {
@@ -230,7 +231,11 @@ def snippets():
     # ipdb.set_trace()
     if request.method == "GET":
 
-        snippets = Snippet.query.all()
+        # snippets = Snippet.query.all()
+        snippets = Snippet.query.filter(Snippet.user_id == session.get("user_id"))
+
+        # user = User.query.filter(User.id == session.get("user_id"))
+
 
         response = make_response(snippets_schema.dump(snippets), 200)
         return response
