@@ -243,6 +243,7 @@ def snippets():
             language_select=json_dict["language_select"],
             code=json_dict["code"],
             explanation=json_dict["explanation"],
+            user_id=json_dict["user_id"]
         )
 
         db.session.add(snippet)
