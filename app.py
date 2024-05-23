@@ -105,7 +105,7 @@ def index():
 
 class Authentication(Resource):
     def get(self):
-        user = User.query.filter(User.id == session.get("user_id")).first()
+        user = User.query.filter(User.username == session.get("username")).first()
         if user:
             print(user.to_dict())
             return user.to_dict(), 200
@@ -142,6 +142,9 @@ class Signup(Resource):
     def post(self):
         data = request.get_json()
 
+
+        print("data", data)
+
         errors = []
         if data['password'] != data['password_confirmation']:
             errors.append("Password confirmation failed")
@@ -170,8 +173,10 @@ class Signup(Resource):
             email=data["email"],
         )
 
+        session["username"] = user.username
+        print(session)
+
         user.password_hash = data["password"]
-        print(data)
 
         try:
             session["user_id"] = user.id
@@ -201,16 +206,21 @@ class Login(Resource):
         username = request.get_json()["username"]
         password = request.get_json()["password"]
 
+        print("session in Login route ============>", session)
+
         if not username or not password:
             return {"errors": ["username and password are required"]}, 400
 
         user = User.query.filter(User.username == username).first()
+        # user = User.query.filter(User.id == session.get("user_id")).first()
 
         if not user:
             return {"errors": ["username or password is incorrect"]}, 404
 
         if user.authenticate(password):
-            session['user_id'] = user.id
+            print("user in Login route", user)
+            session["user_id"] = user.id
+            print(session)
             return user.to_dict(), 200
         else: 
             return {"errors": ["username or password is incorrect"]}, 401
@@ -240,14 +250,21 @@ def snippets():
 
     elif request.method == "POST":
         json_dict = request.get_json()
+        print("session =======>", session)
+
+        # Can't query the User table for "username", no such username exists yet. 
+        user = User.query.filter(User.username == session.get("username")).first()
+        print("user =======>", user)
 
         snippet = Snippet(
             title=json_dict["title"],
             language_select=json_dict["language_select"],
             code=json_dict["code"],
             explanation=json_dict["explanation"],
-            user_id=json_dict["user_id"]
+            user_id=user.id
         )
+
+        print(snippet)
 
         db.session.add(snippet)
         db.session.commit()
@@ -255,6 +272,8 @@ def snippets():
         response = make_response(snippet_schema.dump(snippet), 201)
 
         return response
+    
+# print("session in blobal scope =======>", session)
 
 
 @app.route("/snippets/<int:id>", methods=["GET", "PATCH", "DELETE"])
