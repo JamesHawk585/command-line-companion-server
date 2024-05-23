@@ -50,7 +50,7 @@ class SnippetSchema(ma.SQLAlchemySchema):
         model = Snippet
 
     title = ma.auto_field()
-    # tags = ma.auto_field()
+    tag = ma.auto_field()
     language_select = ma.auto_field()
     code = ma.auto_field()
     explanation = ma.auto_field()
@@ -206,8 +206,6 @@ class Login(Resource):
         username = request.get_json()["username"]
         password = request.get_json()["password"]
 
-        print("session in Login route ============>", session)
-
         if not username or not password:
             return {"errors": ["username and password are required"]}, 400
 
@@ -220,7 +218,8 @@ class Login(Resource):
         if user.authenticate(password):
             print("user in Login route", user)
             session["user_id"] = user.id
-            print(session)
+            session["username"] = username
+            print("session inside user.authenticate(password)", session)
             return user.to_dict(), 200
         else: 
             return {"errors": ["username or password is incorrect"]}, 401
@@ -253,7 +252,7 @@ def snippets():
         print("session =======>", session)
 
         # Can't query the User table for "username", no such username exists yet. 
-        user = User.query.filter(User.username == session.get("username")).first()
+        user = User.query.filter(User.id == session.get("user_id")).first()
         print("user =======>", user)
 
         snippet = Snippet(
