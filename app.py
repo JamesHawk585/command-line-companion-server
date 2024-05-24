@@ -185,16 +185,6 @@ class Signup(Resource):
 
             session["user_id"] = user.id
 
-            # get the users Id
-            # current_user = User.query.filter(User.username == session.get("username")).first()
-            # current_user_id = current_user.id
-            # print("current_user_id ===========>", current_user_id)
-            # user.append(current_user_id)
-
-
-
-            print("Session inside try statement ==========>", session)
-
             return user.to_dict(), 201
         except IntegrityError as e:
             # Handle IntegrityError
@@ -209,10 +199,6 @@ class Signup(Resource):
         
 api.add_resource(Signup, "/signup")
 
-
-
-# =========> 1:46:08 <=========
- 
 
 class Login(Resource):
     def post(self):
@@ -261,10 +247,8 @@ def snippets():
 
     elif request.method == "POST":
         json_dict = request.get_json()
-        print("session =======>", session)
 
         user = User.query.filter(User.id == session.get("user_id")).first()
-        print("user =======>", user)
 
         snippet = Snippet(
             title=json_dict["title"],
@@ -283,7 +267,6 @@ def snippets():
 
         return response
     
-# print("session in blobal scope =======>", session)
 
 
 @app.route("/snippets/<int:id>", methods=["GET", "PATCH", "DELETE"])
