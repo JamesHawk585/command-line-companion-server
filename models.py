@@ -91,7 +91,7 @@ class Snippet(db.Model):
     __tablename__ = "snippet"
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(50), unique=True, nullable=False)
+    title = db.Column(db.String(50), nullable=False)
     language_select = db.Column(db.String)
     code = db.Column(db.String(500), nullable=False)
     explanation = db.Column(db.String(1000))
