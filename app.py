@@ -179,9 +179,22 @@ class Signup(Resource):
         user.password_hash = data["password"]
 
         try:
-            session["user_id"] = user.id
+            session["username"] = user.username
             db.session.add(user)
             db.session.commit()
+
+            session["user_id"] = user.id
+
+            # get the users Id
+            # current_user = User.query.filter(User.username == session.get("username")).first()
+            # current_user_id = current_user.id
+            # print("current_user_id ===========>", current_user_id)
+            # user.append(current_user_id)
+
+
+
+            print("Session inside try statement ==========>", session)
+
             return user.to_dict(), 201
         except IntegrityError as e:
             # Handle IntegrityError
@@ -240,7 +253,6 @@ def snippets():
     # ipdb.set_trace()
     if request.method == "GET":
 
-        # snippets = Snippet.query.all()
         snippets = Snippet.query.filter(Snippet.user_id == session.get("user_id"))
 
 
@@ -251,7 +263,6 @@ def snippets():
         json_dict = request.get_json()
         print("session =======>", session)
 
-        # Can't query the User table for "username", no such username exists yet. 
         user = User.query.filter(User.id == session.get("user_id")).first()
         print("user =======>", user)
 
