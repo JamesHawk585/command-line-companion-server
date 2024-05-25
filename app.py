@@ -229,6 +229,7 @@ api.add_resource(Login, "/login")
 @app.route("/logout", methods=["DELETE"])
 def logout():
     session["user_id"] = None
+    session["username"] = None
     print(session)
     return {}, 204
 
