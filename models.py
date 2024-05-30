@@ -109,8 +109,6 @@ class Snippet(db.Model):
         title_exists = db.session.query(Snippet).filter(Snippet.title == title).first()
         if not title:
             raise ValueError("title field is required")
-        if title_exists:
-            raise ValueError("title must be unique")
         elif key == 'title':
             if len(title) >= 50:
                 raise ValueError("title must be 50 characters or less")
