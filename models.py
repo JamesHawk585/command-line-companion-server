@@ -18,15 +18,15 @@ class User(db.Model, SerializerMixin):
     email = db.Column(db.String, unique=True, nullable=False)
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
-    # User must also have a photo attribute. use a join table to avoid storing large binary strings in the User table. 
+    snippets = db.relationship('Snippet', backref='user', foreign_keys="[Snippet.user_id]")
 
+    # User is the parent table 
+
+
+    # photo_id is a column that will be populated by the primary key from the photos table
+    photo = relationship('Photo',uselist=False, back_populates='owner')
 
     _password_hash = db.Column(db.String, nullable=False)
-    snippets = db.relationship('Snippet', backref='user')
-
-    photo_id = db.Column(db.Integer(), db.ForeignKey('photo.id'))
-    photo = relationship('Photo', back_populates='user')
-
     def __repr__(self):
         return f"\n<User id={self.id} username={self.username} email={self.email} first_name={self.first_name} last_name={self.last_name}>"
 
@@ -43,7 +43,7 @@ class User(db.Model, SerializerMixin):
         return username
     
     @validates('email')
-    def validate_username(self, key, email):
+    def validate_email(self, key, email):
         email_exists = db.session.query(User).filter(User.email == email).first()
         if not email:
             raise ValueError("email field is required")
@@ -96,14 +96,14 @@ class User(db.Model, SerializerMixin):
 # Photo class here 
 class Photo(db.Model, SerializerMixin):
     __tablename__ = 'photo'
-    id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(db.String(255), nullable=False)
+    photo_id = db.Column(db.Integer, primary_key=True)
+    file_name = db.Column(db.String(255), nullable=False)
     content_type = db.Column(db.String(50))
 
-    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'), nullable=False)
-    user = relationship('User', back_populates='photo', single_parent=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
+    owner = relationship('User', back_populates='photo')
 
-    __table_args__ = (UniqueConstraint('user_id', name='user_photo_uc')
+    # __table_args__ = (UniqueConstraint('user_id', name='user_photo_uc'),)
 
 class Snippet(db.Model):
     __tablename__ = "snippet"
