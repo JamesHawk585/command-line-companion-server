@@ -37,7 +37,7 @@
         "tags": "API, Flask, Secret Key",
         "languageSelect": "Python",
         "code": "python -c 'import os; print(os.urandom(16))'",
-        "explanation": "o generate random bytes in Python for cryptographic use, you can use the os.urandom() method. This method returns a string representing random bytes suitable for cryptographic purposes. The size parameter determines the number of random bytes to generate.\n\n\nEach time you run this code, a different set of random bytes will be output. \n\nWhen working with the output of os.urandom(), it's important to understand that the result is in bytes format. You can manipulate these bytes further for cryptographic operations or convert them into a different format as needed.",
+        "explanation": "To generate random bytes in Python for cryptographic use, you can use the os.urandom() method. This method returns a string representing random bytes suitable for cryptographic purposes. The size parameter determines the number of random bytes to generate.\n\n\nEach time you run this code, a different set of random bytes will be output. \n\nWhen working with the output of os.urandom(), it's important to understand that the result is in bytes format. You can manipulate these bytes further for cryptographic operations or convert them into a different format as needed.",
         "id": 6
       }
     ]
