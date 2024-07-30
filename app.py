@@ -138,6 +138,40 @@ api.add_resource(Users, "/users")
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+# Build out the backend infastructure to patch the user object here. 
+# Update SecureSessionCookie
+# Should we be returning the password hash in the SecureSessionCookie?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class Signup(Resource):
     def post(self):
         data = request.get_json()
