@@ -137,16 +137,26 @@ class Users(Resource):
 api.add_resource(Users, "/users")
 
 
+@app.route("/users/<int:id>", methods=["GET", "PATCH", "DELETE"])
+def user_by_id(id):
+    user = User.query.filter_by(id=id).first()
+    if request.method == "GET":
+        response = make_response(user_schema.dump(user), 200)
+        return response 
+    
+    elif request.method == "PATCH":
+        for attr in request.get_json():
+            setattr(user, attr, request.get_json()[attr])
+        
+        db.session.add(user)
+        db.session.commit()
 
+        return make_response(user_schema.dump(user), 200)
 
-
-
-
-
-
-
-
-
+    elif request.method == "DELETE":
+        user = User.query.filter_by(id=id).first()
+        db.session.delete(user)
+        db.session.commit()
 
 
 # Build out the backend infastructure to patch the user object here. 
