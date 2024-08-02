@@ -15,7 +15,7 @@ class User(db.Model, SerializerMixin):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
-    email = db.Column(db.String, unique=True, nullable=False)
+    email = db.Column(db.String, nullable=False)
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
     snippets = db.relationship('Snippet', backref='user', foreign_keys="[Snippet.user_id]")
@@ -44,11 +44,8 @@ class User(db.Model, SerializerMixin):
     
     @validates('email')
     def validate_email(self, key, email):
-        email_exists = db.session.query(User).filter(User.email == email).first()
         if not email:
             raise ValueError("email field is required")
-        if email_exists:
-            raise ValueError("email must be unique")
         if "@" not in email: 
             raise ValueError("failed simplified email validation")
         elif key == 'email':
